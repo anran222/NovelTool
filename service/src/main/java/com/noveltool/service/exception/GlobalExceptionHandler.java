@@ -1,6 +1,9 @@
 package com.noveltool.service.exception;
 
 import com.noveltool.common.dto.DataResponse;
+import com.noveltool.common.exception.BusinessException;
+import com.noveltool.common.exception.ErrorCode;
+import com.noveltool.service.client.exception.FeignClientException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -19,6 +22,22 @@ import java.util.Map;
 public class GlobalExceptionHandler {
     
     /**
+     * 处理业务异常
+     */
+    @ExceptionHandler(BusinessException.class)
+    public DataResponse<Void> handleBusinessException(BusinessException ex) {
+        return DataResponse.error(ex.getCode(), ex.getMessage());
+    }
+    
+    /**
+     * 处理Feign调用异常
+     */
+    @ExceptionHandler(FeignClientException.class)
+    public DataResponse<Void> handleFeignException(FeignClientException ex) {
+        return DataResponse.error(ex.getCode(), ex.getMessage());
+    }
+    
+    /**
      * 处理参数校验异常
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -30,7 +49,11 @@ public class GlobalExceptionHandler {
             String errorMessage = error.getDefaultMessage();
             errors.put(fieldName, errorMessage);
         });
-        return DataResponse.error(400, "参数校验失败", errors);
+        return DataResponse.error(
+            ErrorCode.PARAM_INVALID.getCode(), 
+            ErrorCode.PARAM_INVALID.getDesc(), 
+            errors
+        );
     }
     
     /**
@@ -38,7 +61,14 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(RuntimeException.class)
     public DataResponse<Void> handleRuntimeException(RuntimeException ex) {
-        return DataResponse.error(500, ex.getMessage());
+        // 如果是BusinessException的子类，已经被上面的处理器捕获
+        if (ex instanceof BusinessException) {
+            return handleBusinessException((BusinessException) ex);
+        }
+        return DataResponse.error(
+            ErrorCode.SYSTEM_ERROR.getCode(), 
+            ex.getMessage()
+        );
     }
     
     /**
@@ -46,6 +76,9 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(Exception.class)
     public DataResponse<Void> handleGenericException(Exception ex) {
-        return DataResponse.error(500, "服务器内部错误: " + ex.getMessage());
+        return DataResponse.error(
+            ErrorCode.SYSTEM_ERROR.getCode(), 
+            "服务器内部错误: " + ex.getMessage()
+        );
     }
 }

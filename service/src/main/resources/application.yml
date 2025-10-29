@@ -30,11 +30,43 @@ spring:
       # 打印SQL语句
       log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
   
+  # Jackson配置（支持下划线转驼峰）
+  jackson:
+    property-naming-strategy: SNAKE_CASE  # 接收请求时：下划线转驼峰
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: Asia/Shanghai
+    default-property-inclusion: non_null
+    deserialization:
+      fail-on-unknown-properties: false
+    serialization:
+      write-dates-as-timestamps: false
+  
   # H2控制台配置（开发环境）
   h2:
     console:
       enabled: true
       path: /h2-console
+
+# Feign配置
+feign:
+  client:
+    config:
+      default:
+        connect-timeout: 5000
+        read-timeout: 10000
+        logger-level: basic
+  compression:
+    request:
+      enabled: true
+      mime-types: application/json,application/xml
+      min-request-size: 2048
+    response:
+      enabled: true
+
+# 外部API配置
+external:
+  api:
+    base-url: http://localhost:8080
 
 # 服务器配置
 server:
@@ -59,5 +91,6 @@ logging:
     com.noveltool: DEBUG
     org.springframework.web: INFO
     com.noveltool.service.mapper: DEBUG
+    com.noveltool.service.client: DEBUG
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %level{5} - %-40.40logger{39} : %msg%n"

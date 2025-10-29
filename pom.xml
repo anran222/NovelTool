@@ -25,6 +25,7 @@
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <mybatis.version>3.0.3</mybatis.version>
+        <spring-cloud.version>2023.0.0</spring-cloud.version>
     </properties>
 
     <modules>
@@ -35,6 +36,15 @@
 
     <dependencyManagement>
         <dependencies>
+            <!-- Spring Cloud BOM -->
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            
             <!-- 内部模块 -->
             <dependency>
                 <groupId>com.noveltool</groupId>

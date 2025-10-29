@@ -2,8 +2,10 @@ package com.noveltool.service.service.impl;
 
 import com.noveltool.common.dto.NovelDTO;
 import com.noveltool.common.entity.Novel;
+import com.noveltool.common.exception.BusinessException;
+import com.noveltool.common.exception.ErrorCode;
 import com.noveltool.api.service.INovelService;
-import com.noveltool.service.mapper.NovelMapper;
+import com.noveltool.service.repository.NovelRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,14 +24,14 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class NovelServiceImpl implements INovelService {
     
-    private final NovelMapper novelMapper;
+    private final NovelRepository novelRepository;
     
     /**
      * 获取所有小说
      */
     @Override
     public List<NovelDTO> getAllNovels() {
-        return novelMapper.findAll().stream()
+        return novelRepository.findAll().stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
@@ -39,10 +41,8 @@ public class NovelServiceImpl implements INovelService {
      */
     @Override
     public NovelDTO getNovelById(Long id) {
-        Novel novel = novelMapper.findById(id);
-        if (novel == null) {
-            throw new RuntimeException("小说不存在，ID: " + id);
-        }
+        Novel novel = novelRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOVEL_NOT_FOUND, "ID: " + id));
         return convertToDTO(novel);
     }
     
@@ -57,8 +57,8 @@ public class NovelServiceImpl implements INovelService {
         novel.setCreateTime(now);
         novel.setUpdateTime(now);
         
-        novelMapper.insert(novel);
-        return convertToDTO(novel);
+        Novel savedNovel = novelRepository.insert(novel);
+        return convertToDTO(savedNovel);
     }
     
     /**
@@ -67,18 +67,18 @@ public class NovelServiceImpl implements INovelService {
     @Override
     @Transactional
     public NovelDTO updateNovel(Long id, NovelDTO novelDTO) {
-        Novel existingNovel = novelMapper.findById(id);
-        if (existingNovel == null) {
-            throw new RuntimeException("小说不存在，ID: " + id);
-        }
+        Novel existingNovel = novelRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOVEL_NOT_FOUND, "ID: " + id));
         
         Novel novel = convertToEntity(novelDTO);
         novel.setId(id);
         novel.setCreateTime(existingNovel.getCreateTime());
         novel.setUpdateTime(LocalDateTime.now());
         
-        novelMapper.update(novel);
-        return convertToDTO(novelMapper.findById(id));
+        novelRepository.update(novel);
+        Novel updatedNovel = novelRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(ErrorCode.DATABASE_ERROR, "更新后查询小说失败，ID: " + id));
+        return convertToDTO(updatedNovel);
     }
     
     /**
@@ -87,10 +87,10 @@ public class NovelServiceImpl implements INovelService {
     @Override
     @Transactional
     public void deleteNovel(Long id) {
-        if (!novelMapper.existsById(id)) {
-            throw new RuntimeException("小说不存在，ID: " + id);
+        if (!novelRepository.existsById(id)) {
+            throw new BusinessException(ErrorCode.NOVEL_NOT_FOUND, "ID: " + id);
         }
-        novelMapper.deleteById(id);
+        novelRepository.deleteById(id);
     }
     
     /**
@@ -98,7 +98,7 @@ public class NovelServiceImpl implements INovelService {
      */
     @Override
     public List<NovelDTO> searchByTitle(String title) {
-        return novelMapper.findByTitleContaining(title).stream()
+        return novelRepository.findByTitleContaining(title).stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
@@ -108,7 +108,7 @@ public class NovelServiceImpl implements INovelService {
      */
     @Override
     public List<NovelDTO> findByAuthor(String author) {
-        return novelMapper.findByAuthor(author).stream()
+        return novelRepository.findByAuthor(author).stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
@@ -118,7 +118,7 @@ public class NovelServiceImpl implements INovelService {
      */
     @Override
     public List<NovelDTO> findByCategory(String category) {
-        return novelMapper.findByCategory(category).stream()
+        return novelRepository.findByCategory(category).stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
