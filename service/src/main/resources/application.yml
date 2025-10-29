@@ -1,0 +1,63 @@
+spring:
+  application:
+    name: novel-tool
+  
+  # 数据源配置
+  datasource:
+    url: jdbc:h2:mem:noveldb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=MySQL;INIT=CREATE SCHEMA IF NOT EXISTS PUBLIC
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+    # 数据库初始化脚本
+    sql-script-encoding: UTF-8
+  
+  # 数据库初始化配置
+  sql:
+    init:
+      mode: embedded
+      schema-locations: classpath:db/schema.sql
+      data-locations: classpath:db/data.sql
+  
+  # MyBatis配置
+  mybatis:
+    # Mapper XML文件路径
+    mapper-locations: classpath:mapper/*.xml
+    # 实体类包路径
+    type-aliases-package: com.noveltool.common.entity
+    configuration:
+      # 开启驼峰命名转换
+      map-underscore-to-camel-case: true
+      # 打印SQL语句
+      log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  
+  # H2控制台配置（开发环境）
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+# 服务器配置
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+
+# 应用配置
+app:
+  name: NovelTool
+  description: 小说生成器
+  version: 1.0.0
+
+# 日志配置
+logging:
+  level:
+    root: INFO
+    com.noveltool: DEBUG
+    org.springframework.web: INFO
+    com.noveltool.service.mapper: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %level{5} - %-40.40logger{39} : %msg%n"

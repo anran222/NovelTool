@@ -1,0 +1,12 @@
+-- 小说表结构
+-- 如果表不存在则创建
+CREATE TABLE IF NOT EXISTS novels (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(200) NOT NULL,
+    content TEXT,
+    author VARCHAR(100),
+    category VARCHAR(50),
+    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
